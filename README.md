@@ -9,6 +9,8 @@ It provides target reconnaissance, command execution, and **auto‑reconnecting 
 | **Windows (PHP)** | XAMPP, Wamp, IIS+PHP | PHP | ✅ PHP socket → PowerShell, sleeps 10s |
 | **Windows (IIS)** | IIS + .NET | ASPX (C#) | ✅ Background thread, sleeps 10s |
 
+<img width="1347" height="532" alt="image" src="https://github.com/user-attachments/assets/193ca979-4389-40a4-bb64-34452e583aaf" />
+
 ## 🎯 Features
 
 - 📡 **Target reconnaissance** – OS, user, working directory, language version, server software, disabled functions.
