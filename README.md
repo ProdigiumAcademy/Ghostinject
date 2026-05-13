@@ -1,6 +1,6 @@
-# 👻 Ghostinject – Persistent RFI Payloads
+# 👻 Ghost1nject – Persistent RFI Payloads
 
-**Ghostinject** is a collection of compact, persistent payloads for **Remote File Inclusion (RFI)** vulnerabilities.  
+**Ghost1nject** is a collection of compact, persistent payloads for **Remote File Inclusion (RFI)** vulnerabilities.  
 It provides target reconnaissance, command execution, and **auto‑reconnecting reverse shells** on multiple platforms.
 
 | Version | Platform | Language | Persistence |
